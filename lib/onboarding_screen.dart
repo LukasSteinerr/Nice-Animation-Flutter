@@ -24,6 +24,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       showModalBottomSheet(
         context: context,
         isScrollControlled: true,
+        enableDrag:
+            false, // This prevents the bottom sheet from being swiped away
+        isDismissible:
+            false, // This prevents the bottom sheet from being dismissed by tapping outside
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.only(
             topLeft: Radius.circular(42),
@@ -39,6 +43,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       extendBodyBehindAppBar: true,
+      resizeToAvoidBottomInset: false,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         systemOverlayStyle: SystemUiOverlayStyle.light,

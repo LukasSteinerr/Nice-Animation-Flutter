@@ -117,7 +117,8 @@ class _OnboardContentState extends State<OnboardContent> {
         ),
       );
 
-      // TODO: Navigate to home screen after successful sign in
+      // Close the bottom sheet after successful sign in
+      Navigator.of(context).pop();
     } catch (e) {
       setState(() {
         _errorMessage = e.toString();
