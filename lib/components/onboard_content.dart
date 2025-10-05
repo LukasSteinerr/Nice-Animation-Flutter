@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:test/components/landed_content.dart';
 import 'package:test/components/sing_up_form.dart';
@@ -11,26 +12,19 @@ class OnboardContent extends StatefulWidget {
 
 class _OnboardContentState extends State<OnboardContent> {
   late PageController _pageController;
-  final GlobalKey _signUpFormKey = GlobalKey();
+  final StreamController<void> _authTriggerController =
+      StreamController<void>.broadcast();
+  bool _isSignUpMode = true; // Track the current mode
   // double _progress;
 
-  void _handleSignUp() {
-    print('_handleSignUp called');
-    // Trigger the signUp method in SignUpForm using the key
-    final currentState = _signUpFormKey.currentState;
-    print('Current state: $currentState');
-    if (currentState != null && currentState is State) {
-      print('State is not null, attempting to call signUp');
-      // Try to call the signUp method using dynamic invocation
-      try {
-        (currentState as dynamic).signUp();
-        print('signUp method called successfully');
-      } catch (e) {
-        print('Error calling signUp: $e');
-      }
-    } else {
-      print('Current state is null or not a State');
-    }
+  void _handleAuthentication() {
+    _authTriggerController.sink.add(null);
+  }
+
+  void _handleModeChanged(bool isSignUpMode) {
+    setState(() {
+      _isSignUpMode = isSignUpMode;
+    });
   }
 
   @override
@@ -62,8 +56,8 @@ class _OnboardContentState extends State<OnboardContent> {
                   children: [
                     const LandingContent(),
                     SignUpForm(
-                      key: _signUpFormKey,
-                      onSignUpPressed: _handleSignUp,
+                      onModeChanged: _handleModeChanged,
+                      authTriggerStream: _authTriggerController.stream,
                     ),
                   ],
                 ),
@@ -85,9 +79,9 @@ class _OnboardContentState extends State<OnboardContent> {
                     curve: Curves.ease,
                   );
                 } else if (_pageController.page == 1) {
-                  print('Triggering sign-up');
-                  // Trigger sign-up when on the sign-up page
-                  _handleSignUp();
+                  print('Triggering authentication');
+                  // Trigger authentication when on the sign-up page
+                  _handleAuthentication();
                 }
               },
               child: Container(
@@ -124,8 +118,8 @@ class _OnboardContentState extends State<OnboardContent> {
                             ),
                             FadeTransition(
                               opacity: AlwaysStoppedAnimation(progress),
-                              child: const Text(
-                                "Create account",
+                              child: Text(
+                                _isSignUpMode ? "Create account" : "Sign in",
                                 maxLines: 1,
                                 overflow: TextOverflow.fade,
                                 softWrap: false,
