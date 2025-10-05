@@ -11,7 +11,28 @@ class OnboardContent extends StatefulWidget {
 
 class _OnboardContentState extends State<OnboardContent> {
   late PageController _pageController;
+  final GlobalKey _signUpFormKey = GlobalKey();
   // double _progress;
+
+  void _handleSignUp() {
+    print('_handleSignUp called');
+    // Trigger the signUp method in SignUpForm using the key
+    final currentState = _signUpFormKey.currentState;
+    print('Current state: $currentState');
+    if (currentState != null && currentState is State) {
+      print('State is not null, attempting to call signUp');
+      // Try to call the signUp method using dynamic invocation
+      try {
+        (currentState as dynamic).signUp();
+        print('signUp method called successfully');
+      } catch (e) {
+        print('Error calling signUp: $e');
+      }
+    } else {
+      print('Current state is null or not a State');
+    }
+  }
+
   @override
   void initState() {
     _pageController = PageController()
@@ -38,7 +59,13 @@ class _OnboardContentState extends State<OnboardContent> {
               Expanded(
                 child: PageView(
                   controller: _pageController,
-                  children: [const LandingContent(), const SignUpForm()],
+                  children: [
+                    const LandingContent(),
+                    SignUpForm(
+                      key: _signUpFormKey,
+                      onSignUpPressed: _handleSignUp,
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -49,12 +76,18 @@ class _OnboardContentState extends State<OnboardContent> {
             right: 16,
             child: GestureDetector(
               onTap: () {
+                print('Button tapped! Current page: ${_pageController.page}');
                 if (_pageController.page == 0) {
+                  print('Navigating to sign-up page');
                   _pageController.animateToPage(
                     1,
                     duration: const Duration(milliseconds: 400),
                     curve: Curves.ease,
                   );
+                } else if (_pageController.page == 1) {
+                  print('Triggering sign-up');
+                  // Trigger sign-up when on the sign-up page
+                  _handleSignUp();
                 }
               },
               child: Container(
