@@ -19,6 +19,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         setState(() {});
       });
     super.initState();
+
     Future.delayed(Duration.zero, () {
       showModalBottomSheet(
         context: context,

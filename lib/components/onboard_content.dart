@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:test/components/landed_content.dart';
 import 'package:test/components/sing_up_form.dart';
+import 'package:test/components/sign_in_form.dart';
 
 class OnboardContent extends StatefulWidget {
   const OnboardContent({super.key});
@@ -21,6 +22,14 @@ class _OnboardContentState extends State<OnboardContent> {
     super.initState();
   }
 
+  void goToSignInPage() {
+    _pageController.animateToPage(
+      2, // Assuming 'Sign In' is the third page (index 2)
+      duration: const Duration(milliseconds: 400),
+      curve: Curves.ease,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final double progress = _pageController.hasClients
@@ -28,7 +37,7 @@ class _OnboardContentState extends State<OnboardContent> {
         : 0;
 
     return SizedBox(
-      height: 400 + progress * 160,
+      height: 400 + (progress > 1 ? 1 : progress) * 160,
       child: Stack(
         fit: StackFit.expand,
         children: [
@@ -38,14 +47,18 @@ class _OnboardContentState extends State<OnboardContent> {
               Expanded(
                 child: PageView(
                   controller: _pageController,
-                  children: [const LandingContent(), const SignUpForm()],
+                  children: [
+                    const LandingContent(),
+                    SignUpForm(onSignInPressed: goToSignInPage),
+                    const SignInForm(),
+                  ],
                 ),
               ),
             ],
           ),
           Positioned(
             height: 56,
-            bottom: 48 + progress * 180,
+            bottom: 48 + (progress > 1 ? 1 : progress) * 180,
             right: 16,
             child: GestureDetector(
               onTap: () {
@@ -81,7 +94,11 @@ class _OnboardContentState extends State<OnboardContent> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       SizedBox(
-                        width: 92 + progress * 32,
+                        width:
+                            92 +
+                            (progress > 1
+                                ? (2 - progress) * 32
+                                : progress * 32),
                         child: Stack(
                           fit: StackFit.passthrough,
                           children: [
@@ -90,9 +107,22 @@ class _OnboardContentState extends State<OnboardContent> {
                               child: const Text("Get Started"),
                             ),
                             FadeTransition(
-                              opacity: AlwaysStoppedAnimation(progress),
+                              opacity: AlwaysStoppedAnimation(
+                                progress > 1 ? 1 - (progress - 1) : progress,
+                              ),
                               child: const Text(
                                 "Create account",
+                                maxLines: 1,
+                                overflow: TextOverflow.fade,
+                                softWrap: false,
+                              ),
+                            ),
+                            FadeTransition(
+                              opacity: AlwaysStoppedAnimation(
+                                progress > 1 ? (progress - 1) : 0,
+                              ),
+                              child: const Text(
+                                "Sign in",
                                 maxLines: 1,
                                 overflow: TextOverflow.fade,
                                 softWrap: false,

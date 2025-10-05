@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 
-class SignUpForm extends StatelessWidget {
-  const SignUpForm({Key? key, required this.onSignInPressed}) : super(key: key);
-
-  final VoidCallback onSignInPressed;
+class SignInForm extends StatelessWidget {
+  const SignInForm({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -14,7 +12,7 @@ class SignUpForm extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              "Create an account",
+              "Sign In",
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 26),
             ),
             const SizedBox(height: 16),
@@ -48,18 +46,11 @@ class SignUpForm extends StatelessWidget {
                 ],
               ),
             ),
-            // const SizedBox(height: 16),
             const SizedBox(height: 200),
             Center(
-              child: GestureDetector(
-                onTap: onSignInPressed,
-                child: Text(
-                  "Already have an account? Sign in.",
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.blueGrey.shade300,
-                  ),
-                ),
+              child: Text(
+                "Don't have an account? Sign up.",
+                style: TextStyle(fontSize: 16, color: Colors.blueGrey.shade300),
               ),
             ),
           ],
