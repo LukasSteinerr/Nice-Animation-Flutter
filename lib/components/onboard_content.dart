@@ -75,11 +75,19 @@ class _OnboardContentState extends State<OnboardContent> {
 
       // Show success message or navigate to next screen
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
+        SnackBar(
+          content: const Text(
             'Account created successfully! Please check your email to verify.',
           ),
           backgroundColor: Colors.green,
+          behavior: SnackBarBehavior.floating,
+          margin: EdgeInsets.only(
+            bottom:
+                MediaQuery.of(context).size.height -
+                100, // Adjust this value as needed
+            left: 10,
+            right: 10,
+          ),
         ),
       );
 
@@ -111,9 +119,17 @@ class _OnboardContentState extends State<OnboardContent> {
 
       // Show success message or navigate to home screen
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Signed in successfully!'),
+        SnackBar(
+          content: const Text('Signed in successfully!'),
           backgroundColor: Colors.green,
+          behavior: SnackBarBehavior.floating,
+          margin: EdgeInsets.only(
+            bottom:
+                MediaQuery.of(context).size.height -
+                100, // Adjust this value as needed
+            left: 10,
+            right: 10,
+          ),
         ),
       );
 

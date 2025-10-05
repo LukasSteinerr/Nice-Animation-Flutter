@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:test/services/auth_service.dart';
 import 'package:test/screens/bets_screen.dart';
 import 'package:test/screens/explore_screen.dart';
@@ -48,23 +47,42 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
       body: _widgetOptions.elementAt(_selectedIndex),
-      bottomNavigationBar: BottomNavigationBar(
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.sports_baseball),
-            label: 'Bets',
-          ),
-          BottomNavigationBarItem(icon: Icon(Icons.explore), label: 'Explore'),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.settings),
-            label: 'Settings',
-          ),
-        ],
-        currentIndex: _selectedIndex,
-        selectedItemColor: Colors.amber[800],
-        unselectedItemColor: Colors.grey,
-        onTap: _onItemTapped,
+      floatingActionButton: FloatingActionButton(
+        shape: const CircleBorder(),
+        onPressed: () {
+          print('FAB Tapped!');
+          // You can navigate to a dedicated "Add" screen here
+          // For example:
+          // Navigator.push(context, MaterialPageRoute(builder: (context) => AddNewItemScreen()));
+        },
+        child: const Icon(Icons.add),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      bottomNavigationBar: BottomAppBar(
+        shape: const CircularNotchedRectangle(),
+        notchMargin: 8.0,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: <Widget>[
+            IconButton(
+              icon: const Icon(Icons.home),
+              onPressed: () => _onItemTapped(0),
+            ),
+            IconButton(
+              icon: const Icon(Icons.sports_baseball),
+              onPressed: () => _onItemTapped(1),
+            ),
+            const SizedBox(width: 48), // The space for the FAB
+            IconButton(
+              icon: const Icon(Icons.explore),
+              onPressed: () => _onItemTapped(2),
+            ),
+            IconButton(
+              icon: const Icon(Icons.settings),
+              onPressed: () => _onItemTapped(3),
+            ),
+          ],
+        ),
       ),
     );
   }
