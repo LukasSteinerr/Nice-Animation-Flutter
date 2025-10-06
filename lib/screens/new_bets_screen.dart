@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import 'package:test/utils/colors.dart';
+import 'package:animated_text_kit/animated_text_kit.dart';
 
 class NewBetsScreen extends StatefulWidget {
   const NewBetsScreen({super.key});
@@ -15,10 +16,22 @@ class _NewBetsScreenState extends State<NewBetsScreen> {
   final List<Widget> _onboardingPages = [
     Container(
       color: kBackgroundColor,
-      child: const Center(
-        child: Text(
-          'Page 1',
-          style: TextStyle(color: Colors.white, fontSize: 24),
+      child: Center(
+        child: SizedBox(
+          width: 250.0,
+          child: DefaultTextStyle(
+            style: const TextStyle(
+              fontSize: 30.0,
+              fontFamily: 'Agne',
+              color: Colors.white,
+            ),
+            child: AnimatedTextKit(
+              animatedTexts: [TypewriterAnimatedText('Create your commitment')],
+              onTap: () {
+                print("Tap Event");
+              },
+            ),
+          ),
         ),
       ),
     ),
