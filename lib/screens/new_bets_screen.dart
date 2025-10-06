@@ -16,6 +16,7 @@ class _NewBetsScreenState extends State<NewBetsScreen> {
   bool _showSecondText =
       false; // State variable to control visibility of the second text
   String _animatedText = 'Create your commitment'; // Initial animated text
+  String _durationText = ''; // Text for duration information
   bool _isUserTyping = false; // Track if user is typing
   bool _hasAnimated = false; // Track if animation has already played
 
@@ -52,19 +53,78 @@ class _NewBetsScreenState extends State<NewBetsScreen> {
 
   void _onNameChanged() {
     final text = _nameController.text.trim();
+    _updateCommitmentText(text);
+  }
+
+  void _updateCommitmentText(String text) {
     setState(() {
       if (text.isEmpty) {
         _animatedText = 'Create your commitment';
+        _durationText = '';
         _isUserTyping = false;
         _hasAnimated = false; // Reset animation state when text is empty
       } else {
         _animatedText = 'I commit to $text';
         _isUserTyping = true;
+
+        // Update duration text if end date is selected
+        if (_endDate != null) {
+          _updateDurationText();
+        } else {
+          _durationText = '';
+        }
+
         if (!_hasAnimated) {
           _hasAnimated = true; // Mark that animation has played once
         }
       }
     });
+  }
+
+  void _updateDurationText() {
+    if (_endDate == null) {
+      setState(() {
+        _durationText = '';
+      });
+      return;
+    }
+
+    final String formattedDate =
+        '${_endDate!.day} ${_getMonthName(_endDate!.month)} ${_endDate!.year}';
+
+    setState(() {
+      switch (_frequency) {
+        case 'one time':
+          _durationText = 'by $formattedDate';
+          break;
+        case 'daily':
+          _durationText = 'Daily, until $formattedDate';
+          break;
+        case 'weekly':
+          _durationText = 'Weekly, until $formattedDate';
+          break;
+        default:
+          _durationText = '';
+      }
+    });
+  }
+
+  String _getMonthName(int month) {
+    const monthNames = [
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
+    ];
+    return monthNames[month - 1];
   }
 
   List<Widget> get _onboardingPages => [
@@ -120,14 +180,31 @@ class _NewBetsScreenState extends State<NewBetsScreen> {
                       ),
                     // Show static text after animation has played
                     if (_isUserTyping && _hasAnimated)
-                      Text(
-                        _animatedText,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          fontSize: 28.0,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
+                      Column(
+                        children: [
+                          Text(
+                            _animatedText,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              fontSize: 28.0,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                          // Show duration text if available
+                          if (_durationText.isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 8.0),
+                              child: Text(
+                                _durationText,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  fontSize: 18.0,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            ),
+                        ],
                       ),
                     // Add some spacing between the texts
                     const SizedBox(height: 10),
@@ -245,6 +322,11 @@ class _NewBetsScreenState extends State<NewBetsScreen> {
                           onChanged: (String? newValue) {
                             setState(() {
                               _frequency = newValue!;
+                              // Update duration text if both name and end date are set
+                              if (_nameController.text.trim().isNotEmpty &&
+                                  _endDate != null) {
+                                _updateDurationText();
+                              }
                             });
                           },
                         ),
@@ -279,6 +361,10 @@ class _NewBetsScreenState extends State<NewBetsScreen> {
                         if (picked != null && picked != _endDate) {
                           setState(() {
                             _endDate = picked;
+                            // Update duration text if name is not empty
+                            if (_nameController.text.trim().isNotEmpty) {
+                              _updateDurationText();
+                            }
                           });
                         }
                       },
