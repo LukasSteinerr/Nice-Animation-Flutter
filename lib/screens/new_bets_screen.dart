@@ -13,7 +13,24 @@ class NewBetsScreen extends StatefulWidget {
 
 class _NewBetsScreenState extends State<NewBetsScreen> {
   final PageController _pageController = PageController();
-  final List<Widget> _onboardingPages = [
+  bool _showSecondText =
+      false; // State variable to control visibility of the second text
+
+  @override
+  void initState() {
+    super.initState();
+    // Start a timer to show the second text after the first animation completes
+    // "Create your commitment" has 22 characters. 22 * 100ms = 2200ms. Add a small buffer.
+    Future.delayed(const Duration(milliseconds: 2300), () {
+      if (mounted) {
+        setState(() {
+          _showSecondText = true;
+        });
+      }
+    });
+  }
+
+  List<Widget> get _onboardingPages => [
     Container(
       color: kBackgroundColor,
       child: Center(
@@ -25,11 +42,45 @@ class _NewBetsScreenState extends State<NewBetsScreen> {
               fontFamily: 'Agne',
               color: Colors.white,
             ),
-            child: AnimatedTextKit(
-              animatedTexts: [TypewriterAnimatedText('Create your commitment')],
-              onTap: () {
-                print("Tap Event");
-              },
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                AnimatedTextKit(
+                  animatedTexts: [
+                    TypewriterAnimatedText(
+                      'Create your commitment',
+                      textAlign: TextAlign.center,
+                      textStyle: const TextStyle(
+                        fontSize: 28.0,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                      speed: const Duration(milliseconds: 100),
+                    ),
+                  ],
+                  isRepeatingAnimation: false,
+                  displayFullTextOnTap: true,
+                ),
+                // Add some spacing between the texts
+                const SizedBox(height: 10),
+                // Conditionally display the second AnimatedTextKit
+                if (_showSecondText)
+                  AnimatedTextKit(
+                    animatedTexts: [
+                      TypewriterAnimatedText(
+                        'Let us know what you want to commit to.',
+                        textAlign: TextAlign.center,
+                        textStyle: const TextStyle(
+                          fontSize: 18.0,
+                          color: Colors.grey,
+                        ),
+                        speed: const Duration(milliseconds: 50),
+                      ),
+                    ],
+                    isRepeatingAnimation: false,
+                    displayFullTextOnTap: true,
+                  ),
+              ],
             ),
           ),
         ),
