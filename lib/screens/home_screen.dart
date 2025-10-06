@@ -3,6 +3,7 @@ import 'package:test/services/auth_service.dart';
 import 'package:test/screens/bets_screen.dart';
 import 'package:test/screens/explore_screen.dart';
 import 'package:test/screens/settings_screen.dart';
+import 'package:test/screens/new_bets_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -50,10 +51,10 @@ class _HomeScreenState extends State<HomeScreen> {
       floatingActionButton: FloatingActionButton(
         shape: const CircleBorder(),
         onPressed: () {
-          print('FAB Tapped!');
-          // You can navigate to a dedicated "Add" screen here
-          // For example:
-          // Navigator.push(context, MaterialPageRoute(builder: (context) => AddNewItemScreen()));
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const NewBetsScreen()),
+          );
         },
         child: const Icon(Icons.add),
       ),
