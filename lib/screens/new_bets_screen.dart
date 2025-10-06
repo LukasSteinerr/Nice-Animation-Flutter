@@ -15,6 +15,8 @@ class _NewBetsScreenState extends State<NewBetsScreen> {
   final PageController _pageController = PageController();
   bool _showSecondText =
       false; // State variable to control visibility of the second text
+  String _animatedText = 'Create your commitment'; // Initial animated text
+  bool _isUserTyping = false; // Track if user is typing
 
   // Form controllers
   final TextEditingController _nameController = TextEditingController();
@@ -24,6 +26,10 @@ class _NewBetsScreenState extends State<NewBetsScreen> {
   @override
   void initState() {
     super.initState();
+
+    // Add listener to name controller
+    _nameController.addListener(_onNameChanged);
+
     // Start a timer to show the second text after the first animation completes
     // "Create your commitment" has 22 characters. 22 * 100ms = 2200ms. Add a small buffer.
     Future.delayed(const Duration(milliseconds: 2300), () {
@@ -31,6 +37,27 @@ class _NewBetsScreenState extends State<NewBetsScreen> {
         setState(() {
           _showSecondText = true;
         });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _nameController.removeListener(_onNameChanged);
+    _nameController.dispose();
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  void _onNameChanged() {
+    final text = _nameController.text.trim();
+    setState(() {
+      if (text.isEmpty) {
+        _animatedText = 'Create your commitment';
+        _isUserTyping = false;
+      } else {
+        _animatedText = 'I commit to $text';
+        _isUserTyping = true;
       }
     });
   }
@@ -57,9 +84,12 @@ class _NewBetsScreenState extends State<NewBetsScreen> {
                 child: Column(
                   children: [
                     AnimatedTextKit(
+                      key: ValueKey(
+                        _animatedText,
+                      ), // Key to restart animation when text changes
                       animatedTexts: [
                         TypewriterAnimatedText(
-                          'Create your commitment',
+                          _animatedText,
                           textAlign: TextAlign.center,
                           textStyle: const TextStyle(
                             fontSize: 28.0,
@@ -75,8 +105,11 @@ class _NewBetsScreenState extends State<NewBetsScreen> {
                     // Add some spacing between the texts
                     const SizedBox(height: 10),
                     // Conditionally display the second AnimatedTextKit
-                    if (_showSecondText)
+                    if (_showSecondText && !_isUserTyping)
                       AnimatedTextKit(
+                        key: ValueKey(
+                          'instruction_text',
+                        ), // Key to control animation
                         animatedTexts: [
                           TypewriterAnimatedText(
                             'Let us know what you want to commit to.',
