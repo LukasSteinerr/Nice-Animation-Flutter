@@ -46,6 +46,8 @@ class _NewBetsScreenState extends State<NewBetsScreen> {
             const SizedBox(height: 60), // Space from top
             SizedBox(
               width: double.infinity,
+              height:
+                  120, // Fixed height to prevent pushing content down when text wraps
               child: DefaultTextStyle(
                 style: const TextStyle(
                   fontSize: 30.0,
