@@ -17,6 +17,7 @@ class _NewBetsScreenState extends State<NewBetsScreen> {
       false; // State variable to control visibility of the second text
   String _animatedText = 'Create your commitment'; // Initial animated text
   bool _isUserTyping = false; // Track if user is typing
+  bool _hasAnimated = false; // Track if animation has already played
 
   // Form controllers
   final TextEditingController _nameController = TextEditingController();
@@ -55,9 +56,13 @@ class _NewBetsScreenState extends State<NewBetsScreen> {
       if (text.isEmpty) {
         _animatedText = 'Create your commitment';
         _isUserTyping = false;
+        _hasAnimated = false; // Reset animation state when text is empty
       } else {
         _animatedText = 'I commit to $text';
         _isUserTyping = true;
+        if (!_hasAnimated) {
+          _hasAnimated = true; // Mark that animation has played once
+        }
       }
     });
   }
@@ -83,25 +88,47 @@ class _NewBetsScreenState extends State<NewBetsScreen> {
                 ),
                 child: Column(
                   children: [
-                    AnimatedTextKit(
-                      key: ValueKey(
-                        _animatedText,
-                      ), // Key to restart animation when text changes
-                      animatedTexts: [
-                        TypewriterAnimatedText(
-                          _animatedText,
-                          textAlign: TextAlign.center,
-                          textStyle: const TextStyle(
-                            fontSize: 28.0,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
+                    // Show animated text only when animation should play
+                    if (!_isUserTyping || (_isUserTyping && !_hasAnimated))
+                      AnimatedTextKit(
+                        key: ValueKey(
+                          _isUserTyping
+                              ? 'typing_animation'
+                              : 'initial_animation',
+                        ), // Key to control animation
+                        animatedTexts: [
+                          TypewriterAnimatedText(
+                            _animatedText,
+                            textAlign: TextAlign.center,
+                            textStyle: const TextStyle(
+                              fontSize: 28.0,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                            speed: const Duration(milliseconds: 100),
                           ),
-                          speed: const Duration(milliseconds: 100),
+                        ],
+                        isRepeatingAnimation: false,
+                        displayFullTextOnTap: true,
+                        onFinished: () {
+                          if (_isUserTyping) {
+                            setState(() {
+                              _hasAnimated = true;
+                            });
+                          }
+                        },
+                      ),
+                    // Show static text after animation has played
+                    if (_isUserTyping && _hasAnimated)
+                      Text(
+                        _animatedText,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontSize: 28.0,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
                         ),
-                      ],
-                      isRepeatingAnimation: false,
-                      displayFullTextOnTap: true,
-                    ),
+                      ),
                     // Add some spacing between the texts
                     const SizedBox(height: 10),
                     // Conditionally display the second AnimatedTextKit
