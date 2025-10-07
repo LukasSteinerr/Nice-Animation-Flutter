@@ -13,16 +13,16 @@ class NewBetsScreen extends StatefulWidget {
 
 class _NewBetsScreenState extends State<NewBetsScreen> {
   final PageController _pageController = PageController();
-  bool _showSecondText =
-      false; // State variable to control visibility of the second text
   String _animatedText = 'Create your commitment'; // Initial animated text
   String _durationText = ''; // Text for duration information
+  String _difficultyText = ''; // Text for difficulty information
   bool _isUserTyping = false; // Track if user is typing
   bool _hasAnimated = false; // Track if animation has already played
 
   // Form controllers
   final TextEditingController _nameController = TextEditingController();
   String _frequency = 'one time'; // Default frequency
+  String _difficulty = 'Medium'; // Default difficulty
   DateTime? _endDate; // Selected end date
 
   @override
@@ -31,16 +31,6 @@ class _NewBetsScreenState extends State<NewBetsScreen> {
 
     // Add listener to name controller
     _nameController.addListener(_onNameChanged);
-
-    // Start a timer to show the second text after the first animation completes
-    // "Create your commitment" has 22 characters. 22 * 100ms = 2200ms. Add a small buffer.
-    Future.delayed(const Duration(milliseconds: 2300), () {
-      if (mounted) {
-        setState(() {
-          _showSecondText = true;
-        });
-      }
-    });
   }
 
   @override
@@ -61,6 +51,7 @@ class _NewBetsScreenState extends State<NewBetsScreen> {
       if (text.isEmpty) {
         _animatedText = 'Create your commitment';
         _durationText = '';
+        _difficultyText = '';
         _isUserTyping = false;
         _hasAnimated = false; // Reset animation state when text is empty
       } else {
@@ -72,6 +63,7 @@ class _NewBetsScreenState extends State<NewBetsScreen> {
           _updateDurationText();
         } else {
           _durationText = '';
+          _difficultyText = '';
         }
 
         if (!_hasAnimated) {
@@ -85,6 +77,7 @@ class _NewBetsScreenState extends State<NewBetsScreen> {
     if (_endDate == null) {
       setState(() {
         _durationText = '';
+        _difficultyText = '';
       });
       return;
     }
@@ -96,15 +89,19 @@ class _NewBetsScreenState extends State<NewBetsScreen> {
       switch (_frequency) {
         case 'one time':
           _durationText = 'by $formattedDate';
+          _difficultyText = '';
           break;
         case 'daily':
-          _durationText = 'Daily, until $formattedDate';
+          _durationText = 'Daily until $formattedDate';
+          _difficultyText = 'Difficulty: $_difficulty';
           break;
         case 'weekly':
-          _durationText = 'Weekly, until $formattedDate';
+          _durationText = 'Weekly until $formattedDate';
+          _difficultyText = 'Difficulty: $_difficulty';
           break;
         default:
           _durationText = '';
+          _difficultyText = '';
       }
     });
   }
@@ -135,11 +132,11 @@ class _NewBetsScreenState extends State<NewBetsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: 60), // Space from top
+            const SizedBox(height: 90), // Adjusted space from top
             SizedBox(
               width: double.infinity,
               height:
-                  120, // Fixed height to prevent pushing content down when text wraps
+                  115, // Reduced height to prevent pushing content down when text wraps
               child: DefaultTextStyle(
                 style: const TextStyle(
                   fontSize: 30.0,
@@ -161,7 +158,7 @@ class _NewBetsScreenState extends State<NewBetsScreen> {
                             _animatedText,
                             textAlign: TextAlign.center,
                             textStyle: const TextStyle(
-                              fontSize: 28.0,
+                              fontSize: 26.0,
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
                             ),
@@ -186,7 +183,7 @@ class _NewBetsScreenState extends State<NewBetsScreen> {
                             _animatedText,
                             textAlign: TextAlign.center,
                             style: const TextStyle(
-                              fontSize: 28.0,
+                              fontSize: 26.0,
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
                             ),
@@ -199,40 +196,31 @@ class _NewBetsScreenState extends State<NewBetsScreen> {
                                 _durationText,
                                 textAlign: TextAlign.center,
                                 style: const TextStyle(
-                                  fontSize: 18.0,
+                                  fontSize: 16.0,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            ),
+                          // Show difficulty text if available
+                          if (_difficultyText.isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 8.0),
+                              child: Text(
+                                _difficultyText,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  fontSize: 16.0,
                                   color: Colors.grey,
                                 ),
                               ),
                             ),
                         ],
                       ),
-                    // Add some spacing between the texts
-                    const SizedBox(height: 10),
-                    // Conditionally display the second AnimatedTextKit
-                    if (_showSecondText && !_isUserTyping)
-                      AnimatedTextKit(
-                        key: ValueKey(
-                          'instruction_text',
-                        ), // Key to control animation
-                        animatedTexts: [
-                          TypewriterAnimatedText(
-                            'Let us know what you want to commit to.',
-                            textAlign: TextAlign.center,
-                            textStyle: const TextStyle(
-                              fontSize: 18.0,
-                              color: Colors.grey,
-                            ),
-                            speed: const Duration(milliseconds: 50),
-                          ),
-                        ],
-                        isRepeatingAnimation: false,
-                        displayFullTextOnTap: true,
-                      ),
                   ],
                 ),
               ),
             ),
-            const SizedBox(height: 40), // Space between text and form
+            const SizedBox(height: 5), // Reduced space between text and form
             // Form fields
             Expanded(
               child: SingleChildScrollView(
@@ -271,8 +259,7 @@ class _NewBetsScreenState extends State<NewBetsScreen> {
                       ),
                     ),
 
-                    const SizedBox(height: 24),
-
+                    const SizedBox(height: 12), // Reduced spacing
                     // Frequency field
                     const Text(
                       'Frequency',
@@ -333,8 +320,106 @@ class _NewBetsScreenState extends State<NewBetsScreen> {
                       ),
                     ),
 
-                    const SizedBox(height: 24),
+                    // Difficulty field (only show for daily and weekly)
+                    if (_frequency == 'daily' || _frequency == 'weekly') ...[
+                      const SizedBox(height: 12), // Reduced spacing
+                      Row(
+                        children: [
+                          const Text(
+                            'Difficulty',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          GestureDetector(
+                            onTap: () {
+                              showDialog(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return AlertDialog(
+                                    backgroundColor: Colors.grey[800],
+                                    title: const Text(
+                                      'Difficulty',
+                                      style: TextStyle(color: Colors.white),
+                                    ),
+                                    content: const Text(
+                                      'Determines what percentage of your commitment needs to be reached to succeed.',
+                                      style: TextStyle(color: Colors.white),
+                                    ),
+                                    actions: <Widget>[
+                                      TextButton(
+                                        child: const Text(
+                                          'Close',
+                                          style: TextStyle(color: Colors.white),
+                                        ),
+                                        onPressed: () {
+                                          Navigator.of(context).pop();
+                                        },
+                                      ),
+                                    ],
+                                  );
+                                },
+                              );
+                            },
+                            child: const Icon(
+                              Icons.info_outline,
+                              color: Colors.grey,
+                              size: 16,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: DropdownButtonHideUnderline(
+                          child: DropdownButton<String>(
+                            value: _difficulty,
+                            dropdownColor: Colors.grey[800],
+                            style: const TextStyle(color: Colors.white),
+                            icon: const Icon(
+                              Icons.arrow_drop_down,
+                              color: Colors.white,
+                            ),
+                            isExpanded: true,
+                            items: const [
+                              DropdownMenuItem(
+                                value: 'Easy',
+                                child: Text('Easy (60%)'),
+                              ),
+                              DropdownMenuItem(
+                                value: 'Medium',
+                                child: Text('Medium (80%)'),
+                              ),
+                              DropdownMenuItem(
+                                value: 'Hard',
+                                child: Text('Hard (100%)'),
+                              ),
+                            ],
+                            onChanged: (String? newValue) {
+                              setState(() {
+                                _difficulty = newValue!;
+                                // Update duration text if both name and end date are set
+                                if (_nameController.text.trim().isNotEmpty &&
+                                    _endDate != null) {
+                                  _updateDurationText();
+                                }
+                              });
+                            },
+                          ),
+                        ),
+                      ),
+                    ],
 
+                    const SizedBox(height: 12), // Reduced spacing
                     // Duration field
                     const Text(
                       'Duration',
