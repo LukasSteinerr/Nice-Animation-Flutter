@@ -25,6 +25,32 @@ class _NewBetsScreenState extends State<NewBetsScreen> {
   String _difficulty = 'Medium'; // Default difficulty
   DateTime? _endDate; // Selected end date
 
+  // Page 2 variables
+  String _selectedCharity = ''; // Selected charity
+  String _selectedAmount = ''; // Selected amount
+  final TextEditingController _customAmountController = TextEditingController();
+
+  // List of charities
+  final List<Map<String, String>> _charities = [
+    {
+      'name': 'Red Cross',
+      'description': 'Humanitarian aid and disaster relief',
+    },
+    {
+      'name': 'WWF',
+      'description': 'Wildlife conservation and environmental protection',
+    },
+    {'name': 'UNICEF', 'description': 'Children\'s rights and well-being'},
+    {
+      'name': 'Doctors Without Borders',
+      'description': 'Medical humanitarian assistance',
+    },
+    {
+      'name': 'The Nature Conservancy',
+      'description': 'Environmental conservation',
+    },
+  ];
+
   @override
   void initState() {
     super.initState();
@@ -37,6 +63,7 @@ class _NewBetsScreenState extends State<NewBetsScreen> {
   void dispose() {
     _nameController.removeListener(_onNameChanged);
     _nameController.dispose();
+    _customAmountController.dispose();
     _pageController.dispose();
     super.dispose();
   }
@@ -494,10 +521,275 @@ class _NewBetsScreenState extends State<NewBetsScreen> {
     ),
     Container(
       color: kBackgroundColor,
-      child: const Center(
-        child: Text(
-          'Page 2',
-          style: TextStyle(color: Colors.white, fontSize: 24),
+      child: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 60),
+
+            // Title
+            const Text(
+              'Add stake',
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // Subtitle
+            const Text(
+              'Choose your charity and the amount you want to stake.',
+              style: TextStyle(fontSize: 16, color: Colors.grey),
+            ),
+            const SizedBox(height: 32),
+
+            // Choose your charity section
+            const Text(
+              'Choose your charity',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+              ),
+            ),
+            const SizedBox(height: 8),
+
+            const Text(
+              'In case you fail to meet your commitment, your money will go to this charity.',
+              style: TextStyle(fontSize: 14, color: Colors.grey),
+            ),
+            const SizedBox(height: 16),
+
+            // Select a charity
+            const Text(
+              'Select a charity',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                color: Colors.white,
+              ),
+            ),
+            const SizedBox(height: 12),
+
+            // Charity selection dropdown
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: DropdownButtonHideUnderline(
+                child: DropdownButton<String>(
+                  value: _selectedCharity.isEmpty ? null : _selectedCharity,
+                  dropdownColor: Colors.grey[800],
+                  style: const TextStyle(color: Colors.white),
+                  icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
+                  isExpanded: true,
+                  hint: const Text(
+                    'Select a charity',
+                    style: TextStyle(color: Colors.white70),
+                  ),
+                  items: _charities.map((charity) {
+                    return DropdownMenuItem<String>(
+                      value: charity['name'],
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            charity['name']!,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          Text(
+                            charity['description']!,
+                            style: const TextStyle(
+                              color: Colors.grey,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }).toList(),
+                  onChanged: (String? newValue) {
+                    setState(() {
+                      _selectedCharity = newValue!;
+                    });
+                  },
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 32),
+
+            // Select Amount section
+            const Text(
+              'Select Amount',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                color: Colors.white,
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // Amount options
+            Row(
+              children: [
+                // $25 option
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        _selectedAmount = '25';
+                        _customAmountController.clear();
+                      });
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      decoration: BoxDecoration(
+                        color: _selectedAmount == '25'
+                            ? Colors.white.withOpacity(0.3)
+                            : Colors.white.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                        border: _selectedAmount == '25'
+                            ? Border.all(color: Colors.white, width: 1)
+                            : null,
+                      ),
+                      child: Text(
+                        '\$25',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: _selectedAmount == '25'
+                              ? Colors.white
+                              : Colors.white70,
+                          fontWeight: _selectedAmount == '25'
+                              ? FontWeight.bold
+                              : FontWeight.normal,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+
+                // $50 option
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        _selectedAmount = '50';
+                        _customAmountController.clear();
+                      });
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      decoration: BoxDecoration(
+                        color: _selectedAmount == '50'
+                            ? Colors.white.withOpacity(0.3)
+                            : Colors.white.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                        border: _selectedAmount == '50'
+                            ? Border.all(color: Colors.white, width: 1)
+                            : null,
+                      ),
+                      child: Text(
+                        '\$50',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: _selectedAmount == '50'
+                              ? Colors.white
+                              : Colors.white70,
+                          fontWeight: _selectedAmount == '50'
+                              ? FontWeight.bold
+                              : FontWeight.normal,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+
+                // $100 option
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        _selectedAmount = '100';
+                        _customAmountController.clear();
+                      });
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      decoration: BoxDecoration(
+                        color: _selectedAmount == '100'
+                            ? Colors.white.withOpacity(0.3)
+                            : Colors.white.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                        border: _selectedAmount == '100'
+                            ? Border.all(color: Colors.white, width: 1)
+                            : null,
+                      ),
+                      child: Text(
+                        '\$100',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: _selectedAmount == '100'
+                              ? Colors.white
+                              : Colors.white70,
+                          fontWeight: _selectedAmount == '100'
+                              ? FontWeight.bold
+                              : FontWeight.normal,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 16),
+
+            // Custom Amount option
+            const Text(
+              'Custom Amount',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                color: Colors.white,
+              ),
+            ),
+            const SizedBox(height: 8),
+
+            TextField(
+              controller: _customAmountController,
+              style: const TextStyle(color: Colors.white),
+              keyboardType: TextInputType.number,
+              decoration: InputDecoration(
+                filled: true,
+                fillColor: Colors.white.withOpacity(0.1),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide.none,
+                ),
+                hintText: 'Enter custom amount',
+                hintStyle: TextStyle(color: Colors.white.withOpacity(0.5)),
+                prefixText: '\$ ',
+                prefixStyle: const TextStyle(color: Colors.white),
+              ),
+              onChanged: (value) {
+                setState(() {
+                  _selectedAmount = '';
+                });
+              },
+            ),
+          ],
         ),
       ),
     ),
