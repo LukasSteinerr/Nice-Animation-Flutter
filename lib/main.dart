@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:test/screens/onboarding_screen.dart';
 import 'package:test/screens/home_screen.dart';
+import 'package:test/screens/username_screen.dart';
+import 'package:test/services/auth_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -41,6 +43,9 @@ class AuthWrapper extends StatefulWidget {
 }
 
 class _AuthWrapperState extends State<AuthWrapper> {
+  final AuthService _authService = AuthService();
+  bool _isCheckingUsername = false;
+
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<AuthState>(
@@ -56,14 +61,40 @@ class _AuthWrapperState extends State<AuthWrapper> {
           );
         }
 
-        // If user is authenticated, show home screen
+        // If user is authenticated, check if they have a username
         if (session != null) {
-          return const HomeScreen();
+          return FutureBuilder<bool>(
+            future: _checkHasUsername(),
+            builder: (context, usernameSnapshot) {
+              if (usernameSnapshot.connectionState == ConnectionState.waiting) {
+                return const Scaffold(
+                  body: Center(child: CircularProgressIndicator()),
+                );
+              }
+
+              // If user doesn't have a username, show username screen
+              if (usernameSnapshot.data == false) {
+                return const UsernameScreen();
+              }
+
+              // Otherwise, show home screen
+              return const HomeScreen();
+            },
+          );
         }
 
         // Otherwise, show onboarding screen
         return const OnboardingScreen();
       },
     );
+  }
+
+  Future<bool> _checkHasUsername() async {
+    try {
+      return await _authService.hasUsername();
+    } catch (e) {
+      // If there's an error checking username, assume user doesn't have one
+      return false;
+    }
   }
 }

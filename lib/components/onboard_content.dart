@@ -3,6 +3,7 @@ import 'package:test/components/landed_content.dart';
 import 'package:test/components/sing_up_form.dart';
 import 'package:test/components/sign_in_form.dart';
 import 'package:test/services/auth_service.dart';
+import 'package:test/screens/username_screen.dart';
 
 class OnboardContent extends StatefulWidget {
   const OnboardContent({super.key});
@@ -91,8 +92,13 @@ class _OnboardContentState extends State<OnboardContent> {
         ),
       );
 
-      // Navigate to sign in page after successful sign up
-      goToSignInPage();
+      // Navigate to username selection after successful sign up
+      Navigator.of(context)
+          .push(MaterialPageRoute(builder: (context) => const UsernameScreen()))
+          .then((_) {
+            // After username selection, navigate to sign in page
+            goToSignInPage();
+          });
     } catch (e) {
       setState(() {
         _errorMessage = e.toString();
@@ -117,24 +123,39 @@ class _OnboardContentState extends State<OnboardContent> {
 
       await _authService.signInWithEmail(email, password);
 
-      // Show success message or navigate to home screen
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Signed in successfully!'),
-          backgroundColor: Colors.green,
-          behavior: SnackBarBehavior.floating,
-          margin: EdgeInsets.only(
-            bottom:
-                MediaQuery.of(context).size.height -
-                100, // Adjust this value as needed
-            left: 10,
-            right: 10,
-          ),
-        ),
-      );
+      // Check if user has a username
+      final hasUsername = await _authService.hasUsername();
 
-      // Close the bottom sheet after successful sign in
-      Navigator.of(context).pop();
+      if (!hasUsername) {
+        // Navigate to username selection if user doesn't have one
+        Navigator.of(context)
+            .push(
+              MaterialPageRoute(builder: (context) => const UsernameScreen()),
+            )
+            .then((_) {
+              // Close the bottom sheet after username selection
+              Navigator.of(context).pop();
+            });
+      } else {
+        // Show success message and close the bottom sheet
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Signed in successfully!'),
+            backgroundColor: Colors.green,
+            behavior: SnackBarBehavior.floating,
+            margin: EdgeInsets.only(
+              bottom:
+                  MediaQuery.of(context).size.height -
+                  100, // Adjust this value as needed
+              left: 10,
+              right: 10,
+            ),
+          ),
+        );
+
+        // Close the bottom sheet after successful sign in
+        Navigator.of(context).pop();
+      }
     } catch (e) {
       setState(() {
         _errorMessage = e.toString();

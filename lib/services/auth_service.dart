@@ -75,4 +75,108 @@ class AuthService {
     }
     return null;
   }
+
+  // Save username for the current user
+  Future<void> saveUsername(String username) async {
+    try {
+      final user = _supabase.auth.currentUser;
+      if (user == null) {
+        throw Exception('No authenticated user found');
+      }
+
+      // Check if username is already taken
+      final existingUser = await _supabase
+          .from('user_profiles')
+          .select('id')
+          .eq('username', username)
+          .maybeSingle();
+
+      if (existingUser != null) {
+        throw Exception('Username is already taken');
+      }
+
+      // Insert or update user profile with username
+      await _supabase.from('user_profiles').upsert({
+        'id': user.id,
+        'username': username,
+        'updated_at': DateTime.now().toIso8601String(),
+      });
+    } catch (e) {
+      throw _handleAuthError(e);
+    }
+  }
+
+  // Get username for the current user
+  Future<String?> getUsername() async {
+    try {
+      final user = _supabase.auth.currentUser;
+      if (user == null) {
+        return null;
+      }
+
+      final profile = await _supabase
+          .from('user_profiles')
+          .select('username')
+          .eq('id', user.id)
+          .maybeSingle();
+
+      return profile?['username'] as String?;
+    } catch (e) {
+      throw _handleAuthError(e);
+    }
+  }
+
+  // Check if current user has a username
+  Future<bool> hasUsername() async {
+    final username = await getUsername();
+    return username != null && username.isNotEmpty;
+  }
+
+  // Check if a username is available
+  Future<bool> isUsernameAvailable(String username) async {
+    try {
+      final existingUser = await _supabase
+          .from('user_profiles')
+          .select('id')
+          .eq('username', username)
+          .maybeSingle();
+
+      return existingUser == null;
+    } catch (e) {
+      throw _handleAuthError(e);
+    }
+  }
+
+  // Update username for the current user
+  Future<void> updateUsername(String newUsername) async {
+    try {
+      final user = _supabase.auth.currentUser;
+      if (user == null) {
+        throw Exception('No authenticated user found');
+      }
+
+      // Check if new username is already taken
+      final existingUser = await _supabase
+          .from('user_profiles')
+          .select('id')
+          .eq('username', newUsername)
+          .neq('id', user.id)
+          .maybeSingle();
+
+      if (existingUser != null) {
+        throw Exception('Username is already taken');
+      }
+
+      // Update username
+      await _supabase
+          .from('user_profiles')
+          .update({
+            'username': newUsername,
+            'updated_at': DateTime.now().toIso8601String(),
+          })
+          .eq('id', user.id);
+    } catch (e) {
+      throw _handleAuthError(e);
+    }
+  }
 }
