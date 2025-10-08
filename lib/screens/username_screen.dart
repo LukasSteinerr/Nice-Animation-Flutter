@@ -82,6 +82,42 @@ class _UsernameScreenState extends State<UsernameScreen> {
     }
   }
 
+  void _handleBackButton() {
+    // Show confirmation dialog before signing out
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Cancel Username Selection'),
+          content: const Text(
+            'You need to select a username to continue using the app. Are you sure you want to cancel and sign out?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Close dialog
+              },
+              child: const Text('No'),
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.of(context).pop(); // Close dialog
+
+                // Sign out the user
+                try {
+                  await _authService.signOut();
+                } catch (e) {
+                  // Even if sign out fails, we can still try to navigate
+                }
+              },
+              child: const Text('Yes, Sign Out'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -91,7 +127,7 @@ class _UsernameScreenState extends State<UsernameScreen> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => _handleBackButton(),
         ),
       ),
       body: SafeArea(
