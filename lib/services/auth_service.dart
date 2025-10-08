@@ -1,7 +1,9 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:test/services/user_preferences_service.dart';
 
 class AuthService {
   final SupabaseClient _supabase = Supabase.instance.client;
+  UserPreferencesService? _userPreferencesService;
 
   // Sign up with email and password
   Future<AuthResponse> signUpWithEmail(String email, String password) async {
@@ -24,10 +26,17 @@ class AuthService {
     }
   }
 
+  // Initialize preferences service
+  Future<void> initPreferencesService() async {
+    _userPreferencesService = await UserPreferencesService.getInstance();
+  }
+
   // Sign out
   Future<void> signOut() async {
     try {
       await _supabase.auth.signOut();
+      // Clear cached user data on sign out
+      await _userPreferencesService?.clearUserData();
     } catch (e) {
       throw _handleAuthError(e);
     }
@@ -84,6 +93,9 @@ class AuthService {
         throw Exception('No authenticated user found');
       }
 
+      // Initialize preferences service if not already done
+      _userPreferencesService ??= await UserPreferencesService.getInstance();
+
       // Check if username is already taken
       final existingUser = await _supabase
           .from('user_profiles')
@@ -101,12 +113,15 @@ class AuthService {
         'username': username,
         'updated_at': DateTime.now().toIso8601String(),
       });
+
+      // Cache username locally
+      await _userPreferencesService!.saveUsername(username, user.id);
     } catch (e) {
       throw _handleAuthError(e);
     }
   }
 
-  // Get username for the current user
+  // Get username for the current user (checks cache first)
   Future<String?> getUsername() async {
     try {
       final user = _supabase.auth.currentUser;
@@ -114,22 +129,75 @@ class AuthService {
         return null;
       }
 
+      // Initialize preferences service if not already done
+      _userPreferencesService ??= await UserPreferencesService.getInstance();
+
+      // Check cache first
+      if (_userPreferencesService!.isCurrentUser(user.id) &&
+          _userPreferencesService!.hasUsername()) {
+        return _userPreferencesService!.getUsername();
+      }
+
+      // If not in cache or user changed, fetch from database
       final profile = await _supabase
           .from('user_profiles')
           .select('username')
           .eq('id', user.id)
           .maybeSingle();
 
-      return profile?['username'] as String?;
+      final username = profile?['username'] as String?;
+
+      // Cache the username if it exists
+      if (username != null && username.isNotEmpty) {
+        await _userPreferencesService!.saveUsername(username, user.id);
+      }
+
+      return username;
     } catch (e) {
       throw _handleAuthError(e);
     }
   }
 
-  // Check if current user has a username
+  // Check if current user has a username (checks cache first)
   Future<bool> hasUsername() async {
-    final username = await getUsername();
-    return username != null && username.isNotEmpty;
+    try {
+      final user = _supabase.auth.currentUser;
+      if (user == null) {
+        return false;
+      }
+
+      // Initialize preferences service if not already done
+      _userPreferencesService ??= await UserPreferencesService.getInstance();
+
+      // Check cache first
+      if (_userPreferencesService!.isCurrentUser(user.id) &&
+          _userPreferencesService!.hasUsername()) {
+        return true;
+      }
+
+      // If not in cache or user changed, check database
+      final profile = await _supabase
+          .from('user_profiles')
+          .select('username')
+          .eq('id', user.id)
+          .maybeSingle();
+
+      final username = profile?['username'] as String?;
+      final hasUsername = username != null && username.isNotEmpty;
+
+      // Cache the result
+      if (hasUsername) {
+        await _userPreferencesService!.saveUsername(username!, user.id);
+      }
+
+      return hasUsername;
+    } catch (e) {
+      // If there's an error (e.g., offline), fall back to cache
+      if (_userPreferencesService != null) {
+        return _userPreferencesService!.hasUsername();
+      }
+      return false;
+    }
   }
 
   // Check if a username is available
@@ -155,6 +223,9 @@ class AuthService {
         throw Exception('No authenticated user found');
       }
 
+      // Initialize preferences service if not already done
+      _userPreferencesService ??= await UserPreferencesService.getInstance();
+
       // Check if new username is already taken
       final existingUser = await _supabase
           .from('user_profiles')
@@ -175,6 +246,9 @@ class AuthService {
             'updated_at': DateTime.now().toIso8601String(),
           })
           .eq('id', user.id);
+
+      // Update cached username
+      await _userPreferencesService!.saveUsername(newUsername, user.id);
     } catch (e) {
       throw _handleAuthError(e);
     }

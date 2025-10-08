@@ -44,10 +44,40 @@ class AuthWrapper extends StatefulWidget {
 
 class _AuthWrapperState extends State<AuthWrapper> {
   final AuthService _authService = AuthService();
-  bool _isCheckingUsername = false;
+  bool _isInitialized = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeServices();
+  }
+
+  Future<void> _initializeServices() async {
+    try {
+      // Initialize the preferences service
+      await _authService.initPreferencesService();
+      if (mounted) {
+        setState(() {
+          _isInitialized = true;
+        });
+      }
+    } catch (e) {
+      // If initialization fails, still mark as initialized to allow app to continue
+      if (mounted) {
+        setState(() {
+          _isInitialized = true;
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    if (!_isInitialized) {
+      // Show loading indicator while initializing services
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
     return StreamBuilder<AuthState>(
       stream: supabase.auth.onAuthStateChange,
       builder: (context, snapshot) {
@@ -91,6 +121,7 @@ class _AuthWrapperState extends State<AuthWrapper> {
 
   Future<bool> _checkHasUsername() async {
     try {
+      // This will now check cache first, making it much faster and work offline
       return await _authService.hasUsername();
     } catch (e) {
       // If there's an error checking username, assume user doesn't have one

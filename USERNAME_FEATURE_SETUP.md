@@ -4,7 +4,7 @@ This guide explains how to set up and test the username selection feature for th
 
 ## Overview
 
-The username feature allows users to select a unique username after signing up or signing in. This username serves as an identifier that other users can use to search for them.
+The username feature allows users to select a unique username after signing up or signing in. This username serves as an identifier that other users can use to search for them. The implementation includes local caching for offline functionality and improved performance.
 
 ## Implementation Details
 
@@ -33,16 +33,24 @@ The implementation includes:
 - Error handling for duplicate usernames
 
 #### AuthService Updates (`lib/services/auth_service.dart`)
-- `saveUsername()`: Saves a username for the current user
-- `getUsername()`: Retrieves the current user's username
-- `hasUsername()`: Checks if the current user has a username
+- `saveUsername()`: Saves a username for the current user (both locally and remotely)
+- `getUsername()`: Retrieves the current user's username (checks cache first)
+- `hasUsername()`: Checks if the current user has a username (checks cache first)
 - `isUsernameAvailable()`: Checks if a username is already taken
-- `updateUsername()`: Updates the current user's username
+- `updateUsername()`: Updates the current user's username (both locally and remotely)
+- `initPreferencesService()`: Initializes the local preferences service
+
+#### UserPreferencesService (`lib/services/user_preferences_service.dart`)
+- Handles local caching of username and user ID
+- Provides offline access to username information
+- Manages cache validation and cleanup
+- Ensures data belongs to the correct user
 
 #### Authentication Flow Updates
 - Sign-up flow now prompts for username after successful registration
 - Sign-in flow checks if user has a username and prompts if not
 - AuthWrapper monitors authentication state and redirects to username screen if needed
+- Username information is cached locally for offline access
 
 ## Testing the Feature
 
@@ -81,11 +89,25 @@ Test these scenarios:
 - Network errors are properly handled with appropriate feedback
 - Loading states prevent multiple submissions
 
+### Offline Functionality
+The app now supports offline functionality through local caching:
+- Username is cached locally after successful selection
+- App can be opened offline if username is already cached
+- Cache is validated against current user ID to prevent data leakage
+- Cache is automatically cleared on sign out
+
+### Performance Improvements
+- Username checks are performed locally first, reducing API calls
+- Only fetches from database when cache is empty or invalid
+- Faster app startup time for returning users
+- Reduced network usage and improved responsiveness
+
 ### Future Enhancements
 - Username suggestions for taken usernames
 - Profile customization options
 - Username search functionality
 - Social sharing with username
+- Background sync for username updates
 
 ## Troubleshooting
 
@@ -100,6 +122,19 @@ If users aren't being redirected to the username screen:
 1. Check that the AuthService is properly initialized
 2. Verify the auth state changes are being monitored
 3. Ensure the hasUsername() method is working correctly
+4. Check that the UserPreferencesService is initialized in AuthWrapper
+
+### Cache Issues
+If cached username data seems incorrect:
+1. Clear app data and sign in again to refresh cache
+2. Check that user ID validation is working correctly
+3. Verify cache is properly cleared on sign out
+
+### Offline Issues
+If the app doesn't work offline:
+1. Ensure shared_preferences is properly added to pubspec.yaml
+2. Check that UserPreferencesService is initialized before use
+3. Verify cache is being saved correctly after username selection
 
 ### UI Issues
 If the username screen has display issues:
